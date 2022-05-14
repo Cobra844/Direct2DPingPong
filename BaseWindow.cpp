@@ -1,26 +1,16 @@
 #include "stdafx.h"
 
-#include "BaseWindow.h"
-
-#include "Graphics.h"
-
-#include "DrawInstructions.h"
-
-LRESULT __stdcall BaseWindow::WindowProcedure(HWND windowHandle, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	return DefWindowProc(windowHandle, uMsg, wParam, lParam);
-}
-
 BaseWindow::BaseWindow()
 {
 	windowClass = { 0 };
 	ZeroMemory(&windowClass, sizeof(WNDCLASSEX));
 
-	windowRect = { 0, 0, 800, 600 };
+	windowRect = { 0, 0, 1280, 720 };
+	originalWindowSize = windowRect;
 	AdjustWindowRectEx(&windowRect, WS_OVERLAPPEDWINDOW, false, WS_EX_OVERLAPPEDWINDOW);
 
 	windowClass.cbSize = sizeof(WNDCLASSEX);
-	windowClass.lpfnWndProc = WindowProcedure;
+	windowClass.lpfnWndProc = BaseWindow::WindowProcedure;
 	windowClass.lpszClassName = WindowClassName;
 	windowClass.lpszMenuName = WindowMenuName;
 	windowClass.cbClsExtra = NULL;
@@ -38,31 +28,24 @@ BaseWindow::BaseWindow()
 
 	if (!windowHandle) exit(-2);
 
-	Graphics* graphics;
-	graphics = new Graphics();
-
-	if (!graphics->Init(windowHandle))
-	{
-		delete graphics;
-		exit(-3);
-	}
+	LARGE_INTEGER performanceCounter, frequency;
+	if (!QueryPerformanceCounter(&performanceCounter)) exit(-4);
+	if (!QueryPerformanceFrequency(&frequency)) exit(-5);
 
 	windowMessage.message = WM_NULL;
+}
 
-	while ((windowMessage.message != WM_QUIT) and (windowMessage.message != WM_DESTROY))
+LRESULT __stdcall BaseWindow::WindowProcedure(HWND windowHandle, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
 	{
-		if (PeekMessage(&windowMessage, NULL, 0, 0, PM_REMOVE))
-		{
-				TranslateMessage(&windowMessage);
-			DispatchMessage(&windowMessage);
-		}
-		else
-		{
-			Draw(graphics);
-		}
+	case WM_QUIT:
+	case WM_DESTROY:
+		delete graphics;
+		exit(0);
+		break;
+	default:
+		return DefWindowProc(windowHandle, uMsg, wParam, lParam);
+		break;
 	}
-
-	delete graphics;
-
-	exit(0);
 }

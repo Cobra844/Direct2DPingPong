@@ -12,8 +12,6 @@ public: // Variables
 public: // Functions
 
 	BaseWindow();
+	static LRESULT __stdcall WindowProcedure(HWND windowHandle, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-protected:
-
-	static LRESULT __stdcall WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 };
